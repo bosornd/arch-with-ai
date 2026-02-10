@@ -1,0 +1,3 @@
+---
+agent: k.module-architect
+---

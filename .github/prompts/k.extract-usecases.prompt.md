@@ -1,0 +1,3 @@
+---
+agent: k.usecase-extractor
+---
