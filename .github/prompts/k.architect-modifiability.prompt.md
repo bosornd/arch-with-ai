@@ -1,3 +1,0 @@
----
-agent: k.modifiability-architect
----

@@ -1,3 +1,0 @@
----
-agent: k.system-architect
----
