@@ -1,0 +1,82 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dashboard-update-service
+  namespace: count-system
+  labels:
+    app: dashboard-update-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dashboard-update-service
+  template:
+    metadata:
+      labels:
+        app: dashboard-update-service
+    spec:
+      containers:
+      - name: dashboard-update-service
+        image: agentk.count/dashboard-update-service:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 3005
+          name: http
+        env:
+        - name: PORT
+          value: "3005"
+        - name: REDIS_REPLICA_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: app-config
+              key: REDIS_REPLICA_HOST
+        - name: REDIS_REPLICA_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: app-config
+              key: REDIS_REPLICA_PORT
+        - name: REDIS_CACHE_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: app-config
+              key: REDIS_CACHE_HOST
+        - name: REDIS_CACHE_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: app-config
+              key: REDIS_CACHE_PORT
+        - name: KAFKA_BROKERS
+          valueFrom:
+            configMapKeyRef:
+              name: app-config
+              key: KAFKA_BROKERS
+        - name: KAFKA_TOPIC_COUNT_UPDATES
+          valueFrom:
+            configMapKeyRef:
+              name: app-config
+              key: KAFKA_TOPIC_COUNT_UPDATES
+        - name: DASHBOARD_PROVISION_SERVICE_URL
+          value: "http://dashboard-provision-service:3004"
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 3005
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 3005
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3

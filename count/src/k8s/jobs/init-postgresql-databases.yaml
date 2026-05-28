@@ -1,0 +1,88 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: init-postgresql-databases
+  namespace: count-system
+  labels:
+    app: postgresql-init
+spec:
+  # Job이 실패하면 자동으로 재시도
+  backoffLimit: 5
+  # 완료된 Job은 30분 후 자동 삭제
+  ttlSecondsAfterFinished: 1800
+  template:
+    metadata:
+      labels:
+        app: postgresql-init
+    spec:
+      restartPolicy: OnFailure
+      initContainers:
+      # PostgreSQL이 준비될 때까지 대기
+      - name: wait-for-postgresql
+        image: postgres:15-alpine
+        command:
+        - sh
+        - -c
+        - |
+          echo "Waiting for PostgreSQL to be ready..."
+          until pg_isready -h postgresql-service -U countuser -d postgres; do
+            echo "PostgreSQL is not ready yet. Waiting..."
+            sleep 2
+          done
+          echo "PostgreSQL is ready!"
+        env:
+        - name: PGPASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: app-secret
+              key: POSTGRES_PASSWORD
+      containers:
+      - name: create-databases
+        image: postgres:15-alpine
+        command:
+        - sh
+        - -c
+        - |
+          set -e
+          
+          echo "======================================"
+          echo "PostgreSQL Database Initialization"
+          echo "======================================"
+          
+          # 데이터베이스 생성 함수
+          create_database_if_not_exists() {
+            DB_NAME=$1
+            echo "Checking database: $DB_NAME"
+            
+            # 데이터베이스가 존재하는지 확인
+            DB_EXISTS=$(psql -h postgresql-service -U countuser -d postgres -tAc "SELECT 1 FROM pg_database WHERE datname='$DB_NAME'")
+            
+            if [ "$DB_EXISTS" = "1" ]; then
+              echo "  ✓ Database '$DB_NAME' already exists"
+            else
+              echo "  → Creating database '$DB_NAME'"
+              psql -h postgresql-service -U countuser -d postgres -c "CREATE DATABASE $DB_NAME;"
+              psql -h postgresql-service -U countuser -d postgres -c "GRANT ALL PRIVILEGES ON DATABASE $DB_NAME TO countuser;"
+              echo "  ✓ Database '$DB_NAME' created successfully"
+            fi
+          }
+          
+          # 필요한 데이터베이스 생성
+          create_database_if_not_exists "countinfo"
+          create_database_if_not_exists "countvalue"
+          create_database_if_not_exists "dashboardconfig"
+          
+          echo "======================================"
+          echo "Database initialization completed!"
+          echo "======================================"
+          
+          # 생성된 데이터베이스 목록 출력
+          echo ""
+          echo "Current databases:"
+          psql -h postgresql-service -U countuser -d postgres -c "\l"
+        env:
+        - name: PGPASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: app-secret
+              key: POSTGRES_PASSWORD

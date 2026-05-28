@@ -85,6 +85,98 @@ AgentK는 소프트웨어 아키텍처 구조 설계 활동을 지원하는 에�
 - `work-assigner`: 소스 코드 구조 및 AGENTS.md 생성
 - `code-generator`: 소스 코드 생성
 
+## Count 통합 관리 시스템 사례
+
+이 프로젝트는 **Count 통합 관리 시스템**을 사례로 사용하여 구조 설계 활동의 전체 과정을 보여줍니다.
+
+### 사례 개요
+
+Count 통합 관리 시스템은 다양한 서비스에서 발생하는 Count 데이터를 중앙에서 통합 관리하는 마이크로서비스 기반 시스템입니다.
+
+**주요 특징**:
+
+- 마이크로서비스 아키텍처
+- CQRS 패턴 (Command와 Query 분리)
+- 이벤트 기반 통신 (Kafka)
+- 컨테이너 기반 배포 (Docker, Kubernetes)
+- 실시간 대시보드 (SSE)
+
+### 설계 산출물
+
+Count 통합 관리 시스템의 설계 산출물은 `count/arch/` 디렉토리에 저장되어 있습니다:
+
+```
+count/arch/
+├── system.md                    # 시스템 정의
+├── business.md                  # 비즈니스 요구사항
+├── usecases.md                  # Use Case 목록
+├── qualities.md                 # 선정된 품질 요구사항
+├── architecture.md              # 최종 구조 문서
+├── usecase/                     # Use Case 상세 명세
+│   ├── UC-001-Count 저장.md
+│   ├── UC-002-Count 조회.md
+│   ├── UC-003-Count 관리.md
+│   ├── UC-004-Count 분석.md
+│   └── UC-005-Count 모니터링.md
+├── domain/                      # 도메인 모델
+│   ├── model.md                 # 통합 도메인 모델
+│   └── UC-*.md                  # UC별 도메인 분석
+├── quality/                     # 품질 요구사항
+│   ├── scenarios.md             # 품질 시나리오 목록
+│   ├── evaluations.md           # 품질 시나리오 평가
+│   └── QS-*.md                  # 개별 품질 시나리오
+├── candidate/                   # 후보 구조
+│   ├── candidates.md            # 후보 구조 목록
+│   └── *.md                     # 개별 후보 구조
+├── decision/                    # 설계 결정
+│   ├── decisions.md             # 채택된 후보 구조
+│   └── evaluations.md           # 후보 구조 평가 결과
+├── architecture/                # 최종 구조
+│   ├── deployment.md            # 배치 구조
+│   └── module.md                # 모듈 구조
+└── evaluation/                  # 구조 평가
+    ├── decisions.md             # 명세된 설계 결정 목록
+    └── evaluation.md            # 최종 평가 보고서
+```
+
+### 생성된 소스 코드
+
+생성된 소스 코드는 `count/src/` 디렉토리에 저장되어 있습니다:
+
+```
+count/src/
+├── AGENTS.md                    # 전체 프로젝트 관리
+├── package.json                 # 루트 패키지 설정
+├── tsconfig.json                # TypeScript 설정
+├── README.md                    # 프로젝트 문서
+├── common/                      # 공통 모듈
+│   ├── AGENTS.md
+│   ├── count-info/              # CountInfo 도메인 공통 모듈
+│   └── count-value/             # CountValue 도메인 공통 모듈
+├── count-write-service/         # Count 저장 서비스
+├── count-read-service/          # Count 조회 서비스
+├── count-management-service/    # Count 관리 서비스
+├── count-analysis-service/      # Count 분석 서비스
+├── dashboard-provision-service/ # 대시보드 제공 서비스
+├── dashboard-update-service/     # 대시보드 갱신 서비스
+└── k8s/                         # Kubernetes 배포 파일
+```
+
+**자세한 내용은 [`count/src/README.md`](count/src/README.md)를 참조하세요.**
+
+### 설계 프로세스 예시
+
+Count 통합 관리 시스템의 설계는 다음과 같은 순서로 진행되었습니다:
+
+1. **시스템 정의**: Count 통합 관리 시스템의 목적과 범위 정의
+2. **기능 명세**: 5개의 주요 Use Case 추출 및 상세 명세
+3. **도메인 모델 정립**: CountInfo, CountValue 등 도메인 컴포넌트 식별
+4. **품질 요구사항 선정**: 성능, 변경 용이성, 가용성 등 19개 품질 시나리오 도출 및 평가
+5. **후보 구조 설계**: 성능 최적화, 변경 용이성, MSA 등 다양한 후보 구조 설계
+6. **최종 구조 설계**: CQRS 패턴, 마이크로서비스 아키텍처 채택
+7. **구조 명세**: 최종 아키텍처 문서 작성
+8. **구조 평가**: 품질 요구사항 만족도 평가
+
 ## 워크플로우 상세
 
 구조 설계 활동의 전체 워크플로우는 [`.cursor/agents/doc/workflow.md`](.cursor/agents/doc/workflow.md)에 상세히 명세되어 있습니다.

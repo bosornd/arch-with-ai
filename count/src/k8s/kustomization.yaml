@@ -1,0 +1,47 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: count-system
+
+resources:
+  # 네임스페이스
+  - namespace.yaml
+  
+  # ConfigMap 및 Secret
+  - configmap/app-config.yaml
+  - secret/app-secret.yaml
+  
+  # PVC
+  - persistentvolumeclaims/kafka-pvc.yaml
+  - persistentvolumeclaims/zookeeper-pvc.yaml
+  
+  # 인프라 컴포넌트
+  - statefulsets/postgresql.yaml
+  - services/postgresql-service.yaml
+  - statefulsets/redis-value.yaml
+  - services/redis-service.yaml
+  - statefulsets/redis-replica.yaml
+  - services/redis-replica-service.yaml
+  - statefulsets/redis-cache.yaml
+  - services/redis-cache-service.yaml
+  - deployments/zookeeper.yaml
+  - services/zookeeper-service.yaml
+  - deployments/kafka.yaml
+  - services/kafka-service.yaml
+  
+  # 애플리케이션 서비스
+  - services/count-write-service.yaml
+  - deployments/count-write-service.yaml
+  - services/count-read-service.yaml
+  - deployments/count-read-service.yaml
+  - services/count-management-service.yaml
+  - deployments/count-management-service.yaml
+  - services/count-analysis-service.yaml
+  - deployments/count-analysis-service.yaml
+  - services/dashboard-provision-service.yaml
+  - deployments/dashboard-provision-service.yaml
+  - services/dashboard-update-service.yaml
+  - deployments/dashboard-update-service.yaml
+  
+  # Ingress
+  - ingress/ingress.yaml

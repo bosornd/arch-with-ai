@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: count-analysis-service
+  namespace: count-system
+  labels:
+    app: count-analysis-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: count-analysis-service
+  template:
+    metadata:
+      labels:
+        app: count-analysis-service
+    spec:
+      containers:
+      - name: count-analysis-service
+        image: agentk.count/count-analysis-service:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 3003
+          name: http
+        env:
+        - name: PORT
+          value: "3003"
+        - name: REDIS_REPLICA_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: app-config
+              key: REDIS_REPLICA_HOST
+        - name: REDIS_REPLICA_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: app-config
+              key: REDIS_REPLICA_PORT
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "500m"
+          limits:
+            memory: "1Gi"
+            cpu: "1000m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 3003
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 3003
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3

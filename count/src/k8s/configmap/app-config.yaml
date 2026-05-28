@@ -1,0 +1,69 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+  namespace: count-system
+data:
+  # PostgreSQL 설정
+  POSTGRES_HOST: "postgresql-service"
+  POSTGRES_PORT: "5432"
+  COUNT_INFO_DB_NAME: "countinfo"
+  COUNT_VALUE_DB_NAME: "countvalue"
+  DASHBOARD_CONFIG_DB_NAME: "dashboardconfig"
+  POSTGRES_USER: "countuser"
+  
+  # Redis 설정
+  REDIS_HOST: "redis-service"
+  REDIS_PORT: "6379"
+  REDIS_CACHE_HOST: "redis-cache-service"
+  REDIS_CACHE_PORT: "6379"
+  REDIS_REPLICA_HOST: "redis-replica-service"
+  REDIS_REPLICA_PORT: "6379"
+  
+  # Kafka 설정
+  KAFKA_BROKERS: "kafka-service:9092"
+  KAFKA_TOPIC_COUNT_UPDATES: "count-updates"
+  
+  # 서비스 포트
+  COUNT_WRITE_SERVICE_PORT: "3000"
+  COUNT_READ_SERVICE_PORT: "3001"
+  COUNT_MANAGEMENT_SERVICE_PORT: "3002"
+  COUNT_ANALYSIS_SERVICE_PORT: "3003"
+  DASHBOARD_PROVISION_SERVICE_PORT: "3004"
+  DASHBOARD_UPDATE_SERVICE_PORT: "3005"
+  
+  # PostgreSQL 초기화 스크립트
+  init-multiple-databases.sh: |
+    #!/bin/bash
+    set -e
+    set -u
+    
+    function create_database() {
+      local database=$1
+      echo "Creating database: '$database'"
+      psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname=postgres <<-EOSQL
+        CREATE DATABASE $database;
+        GRANT ALL PRIVILEGES ON DATABASE $database TO $POSTGRES_USER;
+      EOSQL
+      echo "Database '$database' created successfully"
+    }
+    
+    if [ -n "$POSTGRES_MULTIPLE_DATABASES" ]; then
+      echo "======================================"
+      echo "Multiple database creation requested"
+      echo "Databases: $POSTGRES_MULTIPLE_DATABASES"
+      echo "======================================"
+      
+      for db in $(echo $POSTGRES_MULTIPLE_DATABASES | tr ',' ' '); do
+        # 데이터베이스가 이미 존재하는지 확인
+        if psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname=postgres -tAc "SELECT 1 FROM pg_database WHERE datname='$db'" | grep -q 1; then
+          echo "Database '$db' already exists, skipping"
+        else
+          create_database $db
+        fi
+      done
+      
+      echo "======================================"
+      echo "Database initialization completed"
+      echo "======================================"
+    fi

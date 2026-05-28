@@ -1,0 +1,12 @@
+node_modules
+dist
+*.log
+.env
+.DS_Store
+coverage
+*.swp
+*.swo
+*~
+.git
+.gitignore
+k8s
